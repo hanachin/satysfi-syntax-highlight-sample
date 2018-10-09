@@ -1,0 +1,76 @@
+@require: stdjabook
+@require: code
+@require: itemize
+@import: local
+
+document (|
+  title = {SATySFiでRubyのソースコードをシンタックスハイライトする};
+  author = {Seiei MIYAGI};
+  show-title = true;
+  show-toc = false;
+|) '<
+  +section{シンタックスハイライトがしたい}<
+    +p {
+      SATySFiでRubyで書かれたコードのシンタックスハイライトをしたい。
+      codeパッケージを使った場合以下のようになる。色はつかない。
+    }
+    +code(```
+    puts "Hello, World!"
+    ```);
+    +pn {
+      無ければ作ればいい（完）
+    }
+  >
+
+  +section{シンタックスハイライトを実装した}<
+    +p {
+      出来た。ソースコードは http://ruby-highlight.herokuapp.com/ からの引用です。
+    }
+    +code-highlight {
+      <%=
+      highlight(<<~'RUBY')
+        # Greet to you!
+        def hello(name)
+          puts "Hello, #{name}"
+        end
+
+        hello('your name')
+      RUBY
+      %>
+    }
+
+    +subsection{実装方針}<
+      +p {
+        以下のような方法が考えられます。
+        \listing {
+          * SATySFi(言語の方)で字句解析する
+          * SATySFi(言語実装の方)で字句解析する
+          * SATySFiでは字句解析をせず前処理として外部で字句解析を行い結果を.satyに変換する
+        }
+        ここでは一番最後の方針で実装します。
+
+        SATySFi(言語の方)で字句解析を実装するにはまだまだSATySFiでのプログラミング経験が足りません。
+        SATySFi(言語実装の方)に手を加えるにもOCamlを書いた経験がなく学習に時間がかかりそうです。
+        一番最後の前処理を挟む方針だと書き慣れたRubyで実装することが出来ます。
+
+        前処理部分でやることは以下2つです。
+        \listing {
+          * Rubyのプログラムのソースコードを受けとり字句解析する
+          * 字句解析した結果をSATySFiのインラインコマンドに変換しsatyに埋め込む
+        }
+        字句解析にはiro(https://github.com/pocke/iro)を使います。
+        埋め込みにはerb(https://docs.ruby-lang.org/en/2.5.0/ERB.html)を使います。
+      }
+    >
+
+    +subsection{今後}<
+      +p {
+        Rubyで実装した部分を徐々にSATySFi実装に置き換えていけば前処理としてerbを実行する必要がなくなる、はず。
+      }
+
+      +p {
+        がんばりましょう。
+      }
+    >
+  >
+>

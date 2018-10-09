@@ -1,0 +1,61 @@
+@require: color
+@require: gr
+
+module Highlight : sig
+  direct \code-string    : [string] inline-cmd
+  direct \code-character : [string] inline-cmd
+  direct \code-number    : [string] inline-cmd
+  direct \code-float     : [string] inline-cmd
+  direct \code-comment   : [string] inline-cmd
+  direct \code-type      : [string] inline-cmd
+  direct \code-delimiter : [string] inline-cmd
+  direct \code-define    : [string] inline-cmd
+  direct \code-keyword   : [string] inline-cmd
+  direct \code-function  : [string] inline-cmd
+  direct \code-lvar      : [string] inline-cmd
+  direct \code-other     : [string] inline-cmd
+
+  direct \code-space : [] inline-cmd
+  direct \code-new-line : [] inline-cmd
+  direct +code-highlight : [inline-text] block-cmd
+end = struct
+  let highlight ctx color code =
+    read-inline (ctx |> set-text-color color) (embed-string code)
+
+  let-inline ctx \code-string    code = highlight ctx (RGB (1.0,  0.43, 0.43)) code
+  let-inline ctx \code-character code = highlight ctx (RGB (1.0,  0.43, 0.43)) code
+  let-inline ctx \code-number    code = highlight ctx (RGB (1.0,  0.43, 0.43)) code
+  let-inline ctx \code-float     code = highlight ctx (RGB (1.0,  0.43, 0.43)) code
+  let-inline ctx \code-comment   code = highlight ctx (RGB (0.6,  0.60, 0.60)) code
+  let-inline ctx \code-type      code = highlight ctx (RGB (1.0,  0.86, 0.42)) code
+  let-inline ctx \code-delimiter code = highlight ctx (RGB (0.78, 0.29, 1.00)) code
+  let-inline ctx \code-define    code = highlight ctx (RGB (0.28, 1.00, 0.65)) code
+  let-inline ctx \code-keyword   code = highlight ctx (RGB (0.24, 0.75, 1.00)) code
+  let-inline ctx \code-function  code = highlight ctx (RGB (0.24, 0.75, 1.00)) code
+  let-inline ctx \code-lvar      code = highlight ctx (RGB (0.24, 0.75, 1.00)) code
+  let-inline ctx \code-other     code = highlight ctx (RGB (0.87, 0.87, 0.87)) code
+
+  let-inline ctx \code-space =
+    inline-skip (get-natural-width (read-inline ctx {0}))
+
+  let-inline ctx \code-new-line =
+    inline-fil ++ discretionary 0 (inline-skip((get-text-width ctx) *' 2.)) inline-nil inline-nil
+
+  let code-decoset =
+    let deco (x, y) w h d =
+      [ fill (RGB (0.2, 0.2, 0.2)) (Gr.rectangle (x, y -' d) (x +' w, y +' h)) ]
+    in
+      (deco, deco, deco, deco)
+  let code-fill-color = (RGB(0.975, 0.975, 1.))
+  let code-stroke-color = (RGB(0., 0., 0.25))
+  let code-pads = (5pt, 5pt, 5pt, 5pt)
+  let code-ctx ctx =
+    let mono-ctx = ctx |> set-font Latin (`lmmono`, 1., 0.) in
+    let fontsize = get-font-size mono-ctx in
+    let charwid = get-natural-width (read-inline mono-ctx {0}) in
+    mono-ctx |> set-space-ratio (charwid /' fontsize) 0. 0.
+  let-block ctx +code-highlight inner =
+    block-frame-breakable ctx code-pads code-decoset (fun ctx -> (
+      line-break true true (code-ctx ctx) (read-inline (code-ctx ctx) inner)
+    ))
+end
